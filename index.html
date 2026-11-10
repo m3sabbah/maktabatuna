@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مكتبتنا</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#faf6ef;--card:#fff;--ink:#2a2118;--mut:#8a7a68;--acc:#8b4a2b;--acc2:#f1e3d3;--line:#e6dccd;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1814;--card:#28221c;--ink:#f1e9dd;--mut:#a89883;--acc:#e0a173;--acc2:#3a2f25;--line:#3a3128}}
+:root[data-theme="dark"]{--bg:#1c1814;--card:#28221c;--ink:#f1e9dd;--mut:#a89883;--acc:#e0a173;--acc2:#3a2f25;--line:#3a3128}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;overflow:hidden}
+.screen{display:none;height:100%;flex-direction:column}.screen.on{display:flex}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.bar{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--card);border-bottom:1px solid var(--line)}
+.bar h2{margin:0;font-size:1.05rem;flex:1}
+.ib{width:40px;height:40px;border-radius:12px;background:var(--acc2);font-size:1.15rem;display:grid;place-items:center}
+.pill{background:var(--acc);color:#fff;border-radius:12px;padding:10px 16px;font-weight:600}
+#home{align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center}
+#home h1{font-size:2.6rem;margin:0;color:var(--acc)}#home p{color:var(--mut);margin:0 0 18px}
+.big{width:min(320px,100%);padding:20px;border-radius:18px;font-size:1.2rem;font-weight:700;background:var(--acc);color:#fff}
+.big.alt{background:var(--card);color:var(--ink);border:2px solid var(--acc)}
+.sm{display:flex;gap:10px;margin-top:10px}.sm button{background:var(--acc2);border-radius:10px;padding:8px 14px;font-size:.9rem}
+#cam{background:#000;position:relative}
+#vid{flex:1;width:100%;min-height:0;object-fit:cover}
+#camTop{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);inset-inline-start:10px}
+#camTop button{background:#0009;color:#fff;border-radius:20px;padding:8px 14px}
+#cnt{position:absolute;top:calc(env(safe-area-inset-top,0px) + 10px);inset-inline-end:10px;background:#0009;color:#fff;border-radius:20px;padding:8px 14px}
+#shut{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 22px);left:50%;transform:translateX(-50%);width:74px;height:74px;border-radius:50%;background:#fff;border:6px solid #fff6;background-clip:padding-box}
+#hint{position:absolute;bottom:110px;width:100%;text-align:center;color:#fff;font-size:.9rem;text-shadow:0 1px 4px #000}
+#fallback{display:none;margin:auto;text-align:center;color:#fff;padding:20px}
+.sheet{position:absolute;inset:0;background:var(--bg);display:none;flex-direction:column;padding:14px;gap:10px;overflow:auto;z-index:5}
+.sheet.on{display:flex}
+.prev{height:26vh;object-fit:contain;background:var(--acc2);border-radius:12px}
+label{font-size:.85rem;color:var(--mut)}
+input,select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit}
+.busy{color:var(--acc);font-size:.9rem;min-height:1.2em}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.tools{display:flex;gap:8px;padding:8px 12px;flex-wrap:wrap;align-items:center}
+.tools select{width:auto;padding:8px}
+#sb{display:none;padding:8px 12px}#sb.on{display:block}
+#list{flex:1;overflow:auto;padding:8px 12px 20px}
+.it{display:flex;gap:12px;align-items:center;background:var(--card);border-radius:12px;padding:8px;margin-bottom:8px;width:100%;text-align:start}
+.it img{width:52px;height:78px;object-fit:cover;border-radius:6px;background:var(--acc2)}
+.it b{display:block}.it small{color:var(--mut)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.grid button img{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:8px;background:var(--acc2)}
+.empty{text-align:center;color:var(--mut);margin-top:60px}
+#det{overflow:auto}.dbody{display:flex;gap:16px;padding:16px;flex-wrap:wrap}
+.dbody img{width:min(46%,260px);min-width:150px;border-radius:10px;box-shadow:0 4px 16px #0004;align-self:flex-start;flex:0 0 auto}
+.dbody div{flex:1;min-width:160px;display:flex;flex-direction:column;gap:10px}
+.dbody h3{margin:0;font-size:1.4rem}.dbody .a{font-size:1.1rem}.dbody .c{color:var(--acc);font-weight:600}
+#toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#000c;color:#fff;padding:8px 16px;border-radius:20px;opacity:0;transition:.3s;pointer-events:none;z-index:9}
+#toast.on{opacity:1}
+.chip{display:block;width:100%;text-align:start;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:6px}.chip small{color:var(--mut);display:block}
+.sbody{padding:16px;display:flex;flex-direction:column;gap:10px;overflow:auto;max-width:480px;width:100%;margin:0 auto}.sbody h4{margin:6px 0 0}.sbody hr{border:0;border-top:1px solid var(--line);width:100%}.pill.alt{background:var(--acc2);color:var(--ink)}#login input{max-width:320px;text-align:center}
+</style>
+</head>
+<body>
+<section id="login" class="screen" style="align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center">
+  <h1 id="lgT" style="color:var(--acc);margin:0"></h1>
+  <input id="lgP" type="password" autocomplete="current-password">
+  <div id="lgE" style="color:#b3261e;min-height:1.2em"></div>
+  <button class="big" id="lgGo"></button>
+  <button id="lgX" style="color:var(--mut);padding:8px"></button>
+</section>
+
+<section id="set" class="screen">
+  <div class="bar"><button class="ib" id="sBack">→</button><h2 id="sH"></h2></div>
+  <div class="sbody">
+    <h4 id="sPw"></h4>
+    <input id="p0" type="password" autocomplete="off"><input id="p1" type="password" autocomplete="off"><input id="p2" type="password" autocomplete="off">
+    <button class="pill" id="pGo"></button>
+    <hr>
+    <h4 id="kH"></h4>
+    <input id="kIn" type="password" autocomplete="off" placeholder="sk-ant-..." dir="ltr">
+    <button class="pill" id="kGo"></button>
+    <small id="kN" style="color:var(--mut)"></small>
+    <hr>
+    <button class="pill alt" id="bXls"></button>
+    <button class="pill alt" id="bBak"></button>
+    <button class="pill alt" id="bImp"></button><input id="impF" type="file" accept=".json,application/json" hidden>
+    <hr>
+    <button class="pill" id="bOut" style="background:#b3261e"></button>
+  </div>
+</section>
+
+<section id="home" class="screen on">
+  <h1 id="tTitle"></h1><p id="tSub"></p>
+  <button class="big" id="bAdd"></button>
+  <button class="big alt" id="bBrowse"></button>
+  <div class="sm"><button id="bLang"></button><button id="bSet"></button></div>
+</section>
+
+<section id="cam" class="screen">
+  <video id="vid" autoplay playsinline muted></video>
+  <div id="fallback"><p id="fbT"></p><label class="pill" style="display:inline-block"><span id="fbB"></span><input id="file" type="file" accept="image/*" capture="environment" hidden></label></div>
+  <div id="camTop"><button id="bExit"></button></div><div id="cnt">0</div>
+  <div id="hint"></div>
+  <button id="shut" aria-label="capture"></button>
+  <div class="sheet" id="sheet">
+    <img class="prev" id="prev" alt="">
+    <div class="busy" id="busy"></div>
+    <div><label id="lT"></label><input id="fT"></div>
+    <div><label id="lA"></label><input id="fA"></div>
+    <div><label id="lC"></label><select id="fC"></select></div>
+    <div class="row"><button class="pill" id="bSave"></button><button class="ib" style="width:auto;padding:0 14px" id="bDisc"></button></div>
+    <div class="row"><button class="pill alt" id="bSrch"></button><button class="pill alt" id="bBar"></button></div>
+    <div id="sug"></div>
+  </div>
+</section>
+
+<section id="lib" class="screen">
+  <div class="bar"><button class="ib" id="lBack">→</button><h2 id="lH"></h2><button class="ib" id="bS">🔍</button><button class="ib" id="bV">▦</button></div>
+  <div id="sb"><input id="q" type="search"></div>
+  <div class="tools"><select id="sf"></select><button class="ib" id="sd">↑</button><span id="cn" style="color:var(--mut);font-size:.85rem"></span></div>
+  <div id="list"></div>
+</section>
+
+<section id="det" class="screen">
+  <div class="bar"><button class="ib" id="dBack">→</button><h2 id="dH"></h2><button class="ib" id="dEdit">✎</button></div>
+  <div class="dbody"><img id="dImg" alt=""><div id="dInfo"></div></div>
+</section>
+<div id="toast"></div>
+
+<script>
+/* ===== Supabase settings: paste your own values (see setup guide) ===== */
+const SB="https://ypkkupqoqvfxjjrrufbx.supabase.co/rest/v1/",KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlwa2t1cHFvcXZmeGpqcnJ1ZmJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyOTg1NzQsImV4cCI6MjEwOTg3NDU3NH0._uljEe3GdG7EDM-jNGEzxhME3syZfeKZ_gAa6qJwAMg",ADMIN_EMAIL="admin@maktabatuna.app";
+const $=id=>document.getElementById(id);
+const T={ar:{app:"مكتبتنا",sub:"فهرس كتبك بمسح الغلاف",add:"📷 إضافة كتاب",browse:"📚 مشاهدة الكتب",lang:"English",xls:"تصدير Excel",exit:"إنهاء ✕",hint:"ضع الكتاب في الإطار ثم اضغط للتصوير",title:"اسم الكتاب",author:"اسم المؤلف",cat:"التصنيف",save:"حفظ",disc:"تجاهل",busy:"⏳ جارٍ تحليل الغلاف...",nocam:"تعذر فتح الكاميرا. التقط صورة الغلاف:",take:"التقاط صورة",ph:"ابحث بالاسم أو المؤلف أو التصنيف",sTitle:"اسم الكتاب",sAuthor:"المؤلف",sCat:"التصنيف",none:"لا توجد كتب",saved:"تم الحفظ ✓",del:"حذف",conf:"حذف هذا الكتاب؟",fail:"تعذر التحليل التلقائي، أدخل البيانات يدويا",books:"كتاب",det:"بيانات الكتاب",noex:"لا توجد كتب للتصدير",lgT:"دخول المدير",pass:"كلمة المرور",enter:"دخول",wrong:"كلمة المرور غير صحيحة",set:"⚙ الإعدادات",sH:"الإعدادات",sPw:"تغيير كلمة المرور",oldp:"كلمة المرور الحالية",newp:"كلمة المرور الجديدة",newp2:"تأكيد كلمة المرور الجديدة",chg:"تغيير",mism:"كلمتا المرور غير متطابقتين",short:"6 أحرف على الأقل",pwok:"تم تغيير كلمة المرور ✓",bak:"تصدير نسخة احتياطية",imp:"استيراد نسخة احتياطية",impok:"تم استيراد الكتب:",impbad:"ملف غير صالح",out:"تسجيل الخروج",loc:"⏳ تحليل مجاني على الجهاز (أول مرة يحمّل ملفات اللغات)...",kH:"مفتاح Anthropic API (اختياري، لدقة أعلى)",kN:"يُحفظ في هذا الجهاز فقط. استخدم مفتاحا بحد إنفاق محدد.",nokey:"أضف مفتاح API من الإعدادات لتفعيل الاستخراج، أو أدخل البيانات يدويا",ksaved:"تم حفظ المفتاح ✓",newcat:"＋ تصنيف جديد…",newcat2:"اسم التصنيف الجديد",sug:"اقتراحات مطابقة من الإنترنت (اضغط للاختيار)",srch:"🔎 بحث بالاسم",bar:"▮▯ مسح الباركود",barh:"وجّه الباركود (ISBN) خلف الكتاب ثم اضغط",nobar:"لم يُقرأ الباركود، قرّب الكاميرا وحاول ثانية",nosug:"لا توجد نتائج",cancel:"إلغاء",coverUp:"📁 تحميل صورة من الجهاز",coverCam:"📷 تصوير الغلاف",loadfail:"تعذر تحميل الكتب من السحابة",upfail:"فشل الحفظ في السحابة، أعد تسجيل الدخول وحاول ثانية"},
+en:{app:"Maktabatuna",sub:"Catalog your books by scanning covers",add:"📷 Add Book",browse:"📚 View Books",lang:"العربية",xls:"Export Excel",exit:"Done ✕",hint:"Frame the book, then tap to shoot",title:"Title",author:"Author",cat:"Category",save:"Save",disc:"Discard",busy:"⏳ Analyzing cover...",nocam:"Camera unavailable. Take a cover photo:",take:"Take photo",ph:"Search title, author or category",sTitle:"Title",sAuthor:"Author",sCat:"Category",none:"No books",saved:"Saved ✓",del:"Delete",conf:"Delete this book?",fail:"Auto-analysis failed, enter details manually",books:"books",det:"Book details",noex:"No books to export",lgT:"Admin Login",pass:"Password",enter:"Enter",wrong:"Wrong password",set:"⚙ Settings",sH:"Settings",sPw:"Change password",oldp:"Current password",newp:"New password",newp2:"Confirm new password",chg:"Change",mism:"Passwords do not match",short:"At least 6 characters",pwok:"Password changed ✓",bak:"Export backup",imp:"Import backup",impok:"Books imported:",impbad:"Invalid file",out:"Log out",loc:"⏳ Free on-device analysis (first run downloads language files)...",kH:"Anthropic API key (optional, for higher accuracy)",kN:"Stored on this device only. Use a key with a spend limit.",nokey:"Add an API key in Settings to enable extraction, or enter details manually",ksaved:"Key saved ✓",newcat:"+ New category…",newcat2:"New category name",sug:"Matches from the internet (tap to choose)",srch:"🔎 Search by name",bar:"▮▯ Scan barcode",barh:"Aim at the ISBN barcode on the back, then tap",nobar:"Barcode not read, move closer and retry",nosug:"No results",cancel:"Cancel",coverUp:"📁 Upload image",coverCam:"📷 Take photo",loadfail:"Could not load books from the cloud",upfail:"Cloud save failed, log in again and retry"}};
+const DEW={"000":["معلومات وعلوم الحاسوب وأعمال عامة","General Works & Computer Science"],"100":["الفلسفة وعلم النفس","Philosophy & Psychology"],"200":["الدين","Religion"],"300":["العلوم الاجتماعية","Social Sciences"],"400":["اللغات","Language"],"500":["العلوم الطبيعية والرياضيات","Natural Sciences & Mathematics"],"600":["التقنية والعلوم التطبيقية","Technology & Applied Sciences"],"700":["الفنون والترفيه","Arts & Recreation"],"800":["الأدب","Literature"],"900":["التاريخ والجغرافيا","History & Geography"]};
+Object.assign(DEW,{"004":["الحاسوب","Computer Science"],"030":["الموسوعات","Encyclopedias"],"150":["علم النفس","Psychology"],"220":["الكتاب المقدس","Bible"],"297":["الإسلام","Islam"],"320":["العلوم السياسية","Political Science"],"330":["الاقتصاد","Economics"],"340":["القانون","Law"],"370":["التربية والتعليم","Education"],"390":["العادات والتقاليد","Customs & Folklore"],"410":["اللسانيات","Linguistics"],"420":["اللغة الإنجليزية","English Language"],"440":["اللغة الفرنسية","French Language"],"492":["اللغة العربية","Arabic Language"],"510":["الرياضيات","Mathematics"],"530":["الفيزياء","Physics"],"540":["الكيمياء","Chemistry"],"570":["الأحياء","Biology"],"610":["الطب والصحة","Medicine & Health"],"620":["الهندسة","Engineering"],"630":["الزراعة","Agriculture"],"640":["الطبخ والاقتصاد المنزلي","Cooking & Home Economics"],"650":["الإدارة والأعمال","Business & Management"],"740":["الرسم والتصميم","Drawing & Design"],"780":["الموسيقى","Music"],"790":["الترفيه والرياضة","Recreation & Sports"],"808":["الكتابة والبلاغة","Rhetoric & Writing"],"811":["الشعر","Poetry"],"813":["الرواية والقصة","Fiction"],"910":["الجغرافيا والرحلات","Geography & Travel"],"920":["السير والتراجم","Biography"]});
+let L="ar";try{L=localStorage.getItem("lang")||"ar"}catch(e){}
+let books=[],grid=false,sortF="title",asc=true,curId=null,editing=false,pend=null,stream=null,saved=0;
+const t=k=>T[L][k],catName=c=>c&&DEW[c]?c+" – "+DEW[c][L=="ar"?0:1]:(c||"");
+const toast=m=>{const e=$("toast");e.textContent=m;e.classList.add("on");setTimeout(()=>e.classList.remove("on"),1600)};
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.id==id))}
+
+/* ---------- IndexedDB ---------- */
+let db;const dbp=new Promise(r=>{try{const q=indexedDB.open("maktabatuna",1);q.onupgradeneeded=()=>q.result.createObjectStore("b",{keyPath:"id"});q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)}catch(e){r(null)}});
+const tx=async(m,f)=>{db=db||await dbp;if(!db)return null;return new Promise(r=>{const o=db.transaction("b",m).objectStore("b"),q=f(o);q.onsuccess=()=>r(q.result);q.onerror=()=>r(null)})};
+const memFallback=[];
+async function load(){const a=await tx("readonly",o=>o.getAll());books=a||memFallback;books.forEach(b=>b.url=URL.createObjectURL(b.cover));fillCat($("fC"),"")}
+async function put(b){const c={id:b.id,title:b.title,author:b.author,cat:b.cat,cover:b.cover,added:b.added};if(!(await tx("readwrite",o=>o.put(c)))&&!memFallback.includes(b))memFallback.push(b)}
+
+/* ---------- i18n ---------- */
+function applyLang(){const d=document.documentElement;d.lang=L;d.dir=L=="ar"?"rtl":"ltr";
+$("tTitle").textContent=t("app");$("tSub").textContent=t("sub");$("bAdd").textContent=t("add");$("bBrowse").textContent=t("browse");$("bLang").textContent=t("lang");$("bXls").textContent="📊 "+t("xls");$("bSet").textContent=t("set");$("lgT").textContent=t("lgT");$("lgP").placeholder=t("pass");$("lgGo").textContent=t("enter");$("lgX").textContent=t("cancel");$("sH").textContent=t("sH");$("sPw").textContent=t("sPw");$("p0").placeholder=t("oldp");$("p1").placeholder=t("newp");$("p2").placeholder=t("newp2");$("pGo").textContent=t("chg");$("bBak").textContent="💾 "+t("bak");$("bImp").textContent="📥 "+t("imp");$("bOut").textContent=t("out");$("kH").textContent=t("kH");$("kGo").textContent=t("save");$("kN").textContent=t("kN");$("bSrch").textContent=t("srch");$("bBar").textContent=t("bar");$("sBack").textContent=L=="ar"?"→":"←";
+$("bExit").textContent=t("exit");$("hint").textContent=t("hint");$("lT").textContent=t("title");$("lA").textContent=t("author");$("lC").textContent=t("cat");$("bSave").textContent=t("save");$("bDisc").textContent=t("disc");
+$("fbT").textContent=t("nocam");$("fbB").textContent=t("take");$("q").placeholder=t("ph");$("lH").textContent=t("browse").slice(2);$("dH").textContent=t("det");
+const bk=L=="ar"?"→":"←";$("lBack").textContent=bk;$("dBack").textContent=bk;
+fillCat($("fC"),$("fC").value);
+$("sf").innerHTML=[["title","sTitle"],["author","sAuthor"],["cat","sCat"]].map(([v,k])=>`<option value="${v}"${v==sortF?" selected":""}>${t(k)}</option>`).join("");
+if($("lib").classList.contains("on"))render();if($("det").classList.contains("on"))detail()}
+$("bLang").onclick=()=>{L=L=="ar"?"en":"ar";try{localStorage.setItem("lang",L)}catch(e){}applyLang()};
+
+/* ---------- Arabic-aware fuzzy search ---------- */
+const norm=s=>(s||"").normalize("NFD").replace(/[\u0300-\u036f\u064B-\u065F\u0670\u0640]/g,"").replace(/[أإآٱ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي").replace(/[ؤ]/g,"و").replace(/[ئ]/g,"ي").toLowerCase().replace(/[^\p{L}\p{N}\s]/gu," ").replace(/\s+/g," ").trim();
+function lev(a,b){const m=a.length,n=b.length;if(Math.abs(m-n)>2)return 9;let p=Array.from({length:n+1},(_,j)=>j);for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]==b[j-1]?0:1));p=c}return p[n]}
+function match(q,h){if(!q)return true;return q.split(" ").every(tk=>{if(h.includes(tk))return true;if(tk.length<3)return false;const mx=tk.length>=7?2:1;return h.split(" ").some(w=>lev(w,tk)<=mx||lev(w.slice(0,tk.length),tk)<=mx&&tk.length>=4)})}
+const hay=b=>norm([b.title,b.author,DEW[b.cat]?DEW[b.cat][0]+" "+DEW[b.cat][1]+" "+b.cat:(b.cat||"")].join(" "));
+
+/* ---------- Custom categories ---------- */
+const getX=()=>{try{return JSON.parse(localStorage.getItem("ccats")||"[]")}catch(e){return[]}};
+function fillCat(sel,v){const cur=v!==undefined?v:sel.value,ex=[...new Set([...getX(),...books.map(b=>b.cat)])].filter(c=>c&&!DEW[c]);sel.innerHTML="";const add=(val,txt)=>{const o=document.createElement("option");o.value=val;o.textContent=txt;sel.appendChild(o)};add("","—");Object.keys(DEW).sort().forEach(k=>add(k,catName(k)));ex.forEach(c=>add(c,c));add("__new",t("newcat"));if(cur&&cur!="__new"&&![...sel.options].some(o=>o.value==cur))add(cur,cur);sel.value=cur=="__new"?"":(cur||"")}
+function bindCat(sel){let prev=sel.value;sel.onmousedown=sel.ontouchstart=sel.onfocus=()=>{if(sel.value!="__new")prev=sel.value};
+sel.onchange=()=>{if(sel.value!="__new"){prev=sel.value;return}sel.style.display="none";const w=document.createElement("div"),i=document.createElement("input"),ok=document.createElement("button");w.className="row";i.placeholder=t("newcat2");ok.className="pill";ok.textContent="✓";ok.style.flex="0 0 54px";w.append(i,ok);sel.after(w);i.focus();
+const done=()=>{const n=i.value.trim();w.remove();sel.style.display="";if(n){const x=getX();if(!DEW[n]&&!x.includes(n)){x.push(n);try{localStorage.setItem("ccats",JSON.stringify(x))}catch(e){}}fillCat(sel,n)}else sel.value=prev};ok.onclick=done;i.onkeydown=e=>{if(e.key=="Enter")done()}}}
+
+/* ---------- Library ---------- */
+function render(){const q=norm($("q").value);let a=books.filter(b=>match(q,hay(b)));
+const key=b=>sortF=="cat"?b.cat||"":norm(b[sortF]);a.sort((x,y)=>key(x).localeCompare(key(y),L)*(asc?1:-1));
+$("cn").textContent=a.length+" "+t("books");const l=$("list");l.innerHTML="";
+if(!a.length){l.innerHTML='<div class="empty"></div>';l.firstChild.textContent=t("none");return}
+if(grid)l.className="grid";else l.className="";
+a.forEach(b=>{const e=document.createElement("button");e.className=grid?"":"it";const im=new Image();im.src=b.url;im.loading="lazy";e.appendChild(im);
+if(!grid){const d=document.createElement("div"),x=document.createElement("b"),s=document.createElement("small");x.textContent=b.title;s.textContent=[b.author,catName(b.cat)].filter(Boolean).join(" · ");d.append(x,s);e.appendChild(d)}
+e.onclick=()=>{curId=b.id;editing=false;detail();show("det")};l.appendChild(e)})}
+$("bBrowse").onclick=()=>{show("lib");render()};$("lBack").onclick=()=>show("home");
+$("bS").onclick=()=>{$("sb").classList.toggle("on");if($("sb").classList.contains("on"))$("q").focus()};
+$("q").oninput=render;$("sf").onchange=e=>{sortF=e.target.value;render()};
+$("sd").onclick=()=>{asc=!asc;$("sd").textContent=asc?"↑":"↓";render()};
+$("bV").onclick=()=>{grid=!grid;$("bV").textContent=grid?"☰":"▦";render()};
+
+/* ---------- Detail / edit ---------- */
+function detail(){const b=books.find(x=>x.id==curId);if(!b)return show("lib");$("dImg").src=b.url;const i=$("dInfo");i.innerHTML="";
+if(!editing){[["h3",b.title],["div",b.author,"a"],["div",catName(b.cat),"c"]].forEach(([tg,tx,c])=>{const e=document.createElement(tg);e.textContent=tx;if(c)e.className=c;i.appendChild(e)});$("dEdit").textContent="✎";return}
+$("dEdit").textContent="✕";
+const mk=(lbl,el)=>{const w=document.createElement("div"),l=document.createElement("label");l.textContent=lbl;w.append(l,el);i.appendChild(w)};
+const ti=document.createElement("input"),au=document.createElement("input"),ca=document.createElement("select");ti.value=b.title;au.value=b.author;fillCat(ca,b.cat||"");bindCat(ca);
+let nc=null;const pk=cam=>{const f=document.createElement("input");f.type="file";f.accept="image/*";if(cam)f.capture="environment";f.onchange=async()=>{const x=f.files[0];if(!x)return;nc=await toBlob(scaled(await loadImg(x),1000),.88);$("dImg").src=URL.createObjectURL(nc)};f.click()};
+const cr=document.createElement("div");cr.className="row";[["coverUp",0],["coverCam",1]].forEach(([k,c])=>{const bt=document.createElement("button");bt.className="pill alt";bt.textContent=t(k);bt.onclick=()=>pk(c);cr.appendChild(bt)});i.appendChild(cr);
+mk(t("title"),ti);mk(t("author"),au);mk(t("cat"),ca);
+const sv=document.createElement("button");sv.className="pill";sv.textContent=t("save");sv.onclick=async()=>{b.title=ti.value.trim();b.author=au.value.trim();b.cat=ca.value;if(nc){URL.revokeObjectURL(b.url);b.cover=nc;b.url=URL.createObjectURL(nc)}await put(b);editing=false;detail();toast(t("saved"))};
+const dl=document.createElement("button");dl.className="pill";dl.style.background="#b3261e";dl.textContent=t("del");dl.onclick=async()=>{if(!confirm(t("conf")))return;await del(b);books=books.filter(x=>x!=b);const k=memFallback.indexOf(b);if(k>=0)memFallback.splice(k,1);show("lib");render()};
+i.append(sv,dl)}
+$("dEdit").onclick=()=>{if(editing){editing=false;detail();return}needAdmin(()=>{editing=true;show("det");detail()})};$("dBack").onclick=()=>{editing=false;show("lib");render()};
+
+/* ---------- Image helpers ---------- */
+const loadImg=blob=>new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=URL.createObjectURL(blob)});
+const toBlob=(c,q)=>new Promise(r=>c.toBlob(r,"image/jpeg",q));
+function scaled(src,max){const w=src.width||src.videoWidth,h=src.height||src.videoHeight,s=Math.min(1,max/Math.max(w,h)),c=document.createElement("canvas");c.width=Math.round(w*s);c.height=Math.round(h*s);c.getContext("2d").drawImage(src,0,0,c.width,c.height);return c}
+function warp(src,co){const W=src.width,H=src.height,P=k=>[Math.min(1,Math.max(0,co[k][0]))*W,Math.min(1,Math.max(0,co[k][1]))*H],tl=P("tl"),tr=P("tr"),br=P("br"),bl=P("bl"),d=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+const aw=(d(tl,tr)+d(bl,br))/2,ah=(d(tl,bl)+d(tr,br))/2,ow=640,oh=Math.round(Math.min(1000,Math.max(300,ow*ah/aw)));
+const sd=src.getContext("2d").getImageData(0,0,W,H).data,o=document.createElement("canvas");o.width=ow;o.height=oh;const oc=o.getContext("2d"),od=oc.createImageData(ow,oh),dd=od.data;
+for(let y=0;y<oh;y++){const v=y/(oh-1);for(let x=0;x<ow;x++){const u=x/(ow-1),sx=(1-v)*((1-u)*tl[0]+u*tr[0])+v*((1-u)*bl[0]+u*br[0]),sy=(1-v)*((1-u)*tl[1]+u*tr[1])+v*((1-u)*bl[1]+u*br[1]),x0=Math.min(W-2,Math.max(0,Math.floor(sx))),y0=Math.min(H-2,Math.max(0,Math.floor(sy))),fx=Math.min(1,Math.max(0,sx-x0)),fy=Math.min(1,Math.max(0,sy-y0)),i=(y*ow+x)*4;
+for(let c=0;c<3;c++){const p=(y0*W+x0)*4+c,a=sd[p]*(1-fx)+sd[p+4]*fx,b=sd[p+W*4]*(1-fx)+sd[p+W*4+4]*fx;dd[i+c]=a*(1-fy)+b*fy}dd[i+3]=255}}
+/* auto levels per channel (lighting + color correction) */
+for(let c=0;c<3;c++){const h=new Array(256).fill(0);for(let i=c;i<dd.length;i+=4)h[dd[i]]++;const n=ow*oh;let s=0,lo=0,hi=255;for(let k=0;k<256;k++){s+=h[k];if(s>n*.01){lo=k;break}}s=0;for(let k=255;k>=0;k--){s+=h[k];if(s>n*.01){hi=k;break}}
+if(hi-lo>40){const f=255/(hi-lo);for(let i=c;i<dd.length;i+=4)dd[i]=Math.min(255,Math.max(0,(dd[i]-lo)*f))}}
+oc.putImageData(od,0,0);return o}
+
+/* ---------- Scanner ---------- */
+async function startCam(){barMode=false;if(!getKey()&&typeof claude==="undefined")getWorker().catch(()=>{});saved=0;$("cnt").textContent="0";$("sheet").classList.remove("on");show("cam");
+try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920}}});$("vid").srcObject=stream;$("vid").style.display="";$("fallback").style.display="none";$("shut").style.display="";$("hint").style.display=""}
+catch(e){$("vid").style.display="none";$("fallback").style.display="block";$("shut").style.display="none";$("hint").style.display="none"}}
+function stopCam(){if(stream){stream.getTracks().forEach(x=>x.stop());stream=null}}
+$("bAdd").onclick=()=>needAdmin(startCam);$("bExit").onclick=()=>{stopCam();show("home")};
+$("shut").onclick=()=>{const v=$("vid");if(!v.videoWidth)return;const c=scaled(v,1600);barMode?doBar(c):process(c)};
+$("file").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;const c=scaled(await loadImg(f),1600);barMode?doBar(c):process(c)};
+async function process(src){const prevBlob=await toBlob(src,.85);pend={id:Date.now()+"-"+Math.random().toString(36).slice(2,6),title:"",author:"",cat:"",cover:prevBlob,added:Date.now()};
+$("prev").src=URL.createObjectURL(prevBlob);$("fT").value="";$("fA").value="";fillCat($("fC"),"");$("sug").innerHTML="";sugSeq++;$("busy").textContent=t("busy");$("sheet").classList.add("on");const mine=pend;
+try{const r=await askAI(`This is a photo of a book cover (Arabic, English or French). Return ONLY a JSON object: {"title":"book title exactly as printed on the cover, original language and spelling","author":"author name as printed, or empty string","dewey":"the Dewey Decimal main class most fitting this book, one of 000,100,200,300,400,500,600,700,800,900","corners":{"tl":[x,y],"tr":[x,y],"br":[x,y],"bl":[x,y]}}. corners are the four outer corners of the book cover itself in the image (tl = top-left corner of the cover as a reader sees it), as fractions 0 to 1 of image width and height. Ignore the background.`,await toBlob(scaled(src,1024),.8));
+if(pend!==mine)return;$("fT").value=r.title||"";$("fA").value=r.author||"";$("fC").value=DEW[r.dewey]?r.dewey:"";
+const c=r.corners;if(c&&["tl","tr","br","bl"].every(k=>Array.isArray(c[k])&&c[k].length==2&&c[k].every(Number.isFinite))){const area=Math.abs((c.tl[0]*c.tr[1]-c.tr[0]*c.tl[1])+(c.tr[0]*c.br[1]-c.br[0]*c.tr[1])+(c.br[0]*c.bl[1]-c.bl[0]*c.br[1])+(c.bl[0]*c.tl[1]-c.tl[0]*c.bl[1]))/2;
+if(area>.08){const out=await toBlob(warp(src,c),.88);if(pend===mine){mine.cover=out;$("prev").src=URL.createObjectURL(out)}}}
+$("busy").textContent=""}catch(e){if(pend===mine&&e!=="nokey")$("busy").textContent=t("fail")}}
+$("bSave").onclick=async()=>{if(!pend)return;const b=pend;pend=null;b.title=$("fT").value.trim()||"—";b.author=$("fA").value.trim();b.cat=$("fC").value;b.url=URL.createObjectURL(b.cover);await put(b);books.includes(b)||books.push(b);saved++;$("cnt").textContent=saved;$("sheet").classList.remove("on");toast(t("saved"))};
+$("bDisc").onclick=()=>{pend=null;$("sheet").classList.remove("on")};
+
+/* ---------- Excel export ---------- */
+$("bXls").onclick=async()=>{if(!books.length)return toast(t("noex"));
+const H=L=="ar"?["اسم الكتاب","اسم المؤلف","التصنيف"]:["Title","Author","Category"],rows=[H,...books.map(b=>[b.title,b.author,catName(b.cat)])],ws=XLSX.utils.aoa_to_sheet(rows);ws["!cols"]=[{wch:40},{wch:28},{wch:34}];
+const wb=XLSX.utils.book_new();if(L=="ar")wb.Workbook={Views:[{RTL:true}]};XLSX.utils.book_append_sheet(wb,ws,"Books");
+const data=new Blob([XLSX.write(wb,{type:"array",bookType:"xlsx"})],{type:"application/octet-stream"});
+await saveFile("maktabatuna.xlsx",data)};
+
+/* ---------- Save file (Claude host or normal browser/GitHub Pages) ---------- */
+async function saveFile(filename,data){try{if(typeof claude!=="undefined"){const d=await claude.use("downloads");if(d){await d.save({filename,data});return}}}catch(e){if(e&&e.code=="declined")return}
+const a=document.createElement("a");a.href=URL.createObjectURL(data);a.download=filename;document.body.appendChild(a);a.click();a.remove()}
+
+/* ---------- AI extraction: Claude host if available, else Anthropic API key ---------- */
+/* ---------- Free local extraction (Tesseract.js, zero cost) ---------- */
+let tw=null;
+async function getWorker(){if(tw)return tw;await new Promise((ok,no)=>{if(window.Tesseract)return ok();const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";s.onload=ok;s.onerror=no;document.head.appendChild(s)});try{tw=await Tesseract.createWorker(["ara","eng","fra"])}catch(e){tw=null;throw e}return tw}
+function detectCorners(c){const gw=100,gh=Math.max(20,Math.round(gw*c.height/c.width)),s=document.createElement("canvas");s.width=gw;s.height=gh;const x=s.getContext("2d");x.drawImage(c,0,0,gw,gh);const d=x.getImageData(0,0,gw,gh).data,N=gw*gh,full={tl:[0,0],tr:[1,0],br:[1,1],bl:[0,1]};
+let r=0,g=0,b=0,n=0;const add=i=>{r+=d[i];g+=d[i+1];b+=d[i+2];n++};
+for(let i=0;i<gw;i++)for(const y of[0,1,gh-2,gh-1])add((y*gw+i)*4);for(let y=0;y<gh;y++)for(const i of[0,1,gw-2,gw-1])add((y*gw+i)*4);
+r/=n;g/=n;b/=n;const m=new Uint8Array(N);for(let i=0;i<N;i++)m[i]=Math.hypot(d[i*4]-r,d[i*4+1]-g,d[i*4+2]-b)>55?1:0;
+const seen=new Uint8Array(N);let best=[];for(let i=0;i<N;i++){if(!m[i]||seen[i])continue;const q=[i],comp=[];seen[i]=1;while(q.length){const p=q.pop();comp.push(p);const px=p%gw,py=(p/gw)|0;for(const[ax,ay]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=px+ax,ny=py+ay;if(nx<0||ny<0||nx>=gw||ny>=gh)continue;const k=ny*gw+nx;if(m[k]&&!seen[k]){seen[k]=1;q.push(k)}}}if(comp.length>best.length)best=comp}
+if(best.length<N*.12||best.length>N*.97)return full;
+const S=[1e9,-1e9,-1e9,-1e9],P=[null,null,null,null];
+for(const p of best){const px=p%gw,py=(p/gw)|0,v=[px+py,px+py,px-py,py-px];if(v[0]<S[0]){S[0]=v[0];P[0]=[px,py]}if(v[1]>S[1]){S[1]=v[1];P[1]=[px,py]}if(v[2]>S[2]){S[2]=v[2];P[2]=[px,py]}if(v[3]>S[3]){S[3]=v[3];P[3]=[px,py]}}
+const f=q=>[(q[0]+.5)/gw,(q[1]+.5)/gh];return{tl:f(P[0]),br:f(P[1]),tr:f(P[2]),bl:f(P[3])}}
+const KW={"200":["اسلام","قران","فقه","حديث","تفسير","دين","عقيد","islam","quran","relig","bible","dieu"],"100":["فلسف","نفس","philosoph","psycholog"],"300":["سياس","اقتصاد","مجتمع","قانون","تربي","تعليم","politic","econom","law","societ","droit","educat"],"400":["لغ","نحو","معجم","قاموس","grammar","dictionar","language","langue"],"500":["رياضيات","فيزياء","كيمياء","احياء","فلك","علوم","math","physic","chem","biolog","scien"],"600":["طب","هندس","حاسوب","برمج","زراع","طبخ","medic","engineer","computer","program","cook","cuisine"],"700":["فن","موسيق","رسم","رياض","تصوير","art","music","sport","paint","photo"],"800":["روايه","شعر","ديوان","قصص","قصه","ادب","novel","poem","poet","roman","poesie","stories","litter"],"900":["تاريخ","جغراف","رحل","سيره","histor","geograph","biograph","travel"],"000":["موسوع","encyclop"]};
+function guessDewey(s){const ws=norm(s).split(" ").map(w=>w.replace(/^ال/,"")),sc=Object.entries(KW).map(([k,a])=>[k,ws.filter(w=>a.some(x=>w.startsWith(x))).length]).sort((x,y)=>y[1]-x[1])[0];return sc&&sc[1]>0?sc[0]:""}
+async function localOCR(blob){$("busy").textContent=t("loc");const c=scaled(await loadImg(blob),1024),corners=detectCorners(c),o=warp(c,corners),cv=document.createElement("canvas");cv.width=o.width*2;cv.height=o.height*2;const x=cv.getContext("2d");x.filter="grayscale(1) contrast(1.3)";x.drawImage(o,0,0,cv.width,cv.height);
+const w=await getWorker(),res=await w.recognize(cv),ls=(res.data.lines||[]).map(l=>({t:l.text.replace(/[^\p{L}\p{N}\s'’\-\.:]/gu," ").replace(/\s+/g," ").trim(),h:l.bbox.y1-l.bbox.y0,y:(l.bbox.y0+l.bbox.y1)/2,c:l.confidence})).filter(l=>l.c>=30&&(l.t.match(/\p{L}/gu)||[]).length>=2);
+if(!ls.length)return{title:"",author:"",dewey:"",corners};
+ls.sort((a,b)=>b.h-a.h);const top=ls[0],grp=ls.filter(l=>l.h>=top.h*.65&&Math.abs(l.y-top.y)<top.h*4).sort((a,b)=>a.y-b.y),rest=ls.filter(l=>!grp.includes(l)&&l.h>=top.h*.3);
+const title=grp.map(l=>l.t).join(" "),pre=/^(تأليف|تاليف|بقلم|إعداد|اعداد|by|par|written by)[\s:：]*/i;let author="";const pl=rest.find(l=>pre.test(l.t));
+if(pl){author=pl.t.replace(pre,"").trim();if(!author){const nx=rest.filter(l=>l.y>pl.y).sort((a,b)=>a.y-b.y)[0];author=nx?nx.t:""}}else if(rest[0])author=rest[0].t;
+const all=ls.map(l=>l.t).join(" "),r0={title,author,dewey:guessDewey(title+" "+all),corners};
+const sg=await suggest(title||all,all);if(sg.length&&sg[0].s>=.6){r0.title=sg[0].title;r0.author=sg[0].author||author;const d=guessDewey(sg[0].title+" "+sg[0].cats);if(d)r0.dewey=d}
+return r0}
+
+/* ---------- Free online lookup (Google Books, no key) + ISBN barcode ---------- */
+let barMode=false,sugSeq=0;
+const loadScript=u=>new Promise((ok,no)=>{const s=document.createElement("script");s.src=u;s.onload=ok;s.onerror=no;document.head.appendChild(s)});
+async function readISBN(c){
+ try{if("BarcodeDetector" in window){const r=await new BarcodeDetector({formats:["ean_13"]}).detect(c);const v=r.map(x=>x.rawValue).find(v=>/^97[89]\d{10}$/.test(v));if(v)return v}}catch(e){}
+ try{if(!window.ZXing)await loadScript("https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js");const Z=window.ZXing,h=new Map();h.set(Z.DecodeHintType.POSSIBLE_FORMATS,[Z.BarcodeFormat.EAN_13]);h.set(Z.DecodeHintType.TRY_HARDER,true);
+ const d=c.getContext("2d").getImageData(0,0,c.width,c.height).data,g=new Uint8ClampedArray(c.width*c.height);for(let i=0;i<g.length;i++)g[i]=d[i*4]*.3+d[i*4+1]*.59+d[i*4+2]*.11;
+ const rd=new Z.MultiFormatReader();rd.setHints(h);return rd.decode(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.RGBLuminanceSource(g,c.width,c.height)))).getText()}catch(e){return null}}
+async function gb(q){const r=await fetch("https://www.googleapis.com/books/v1/volumes?maxResults=6&printType=books&q="+encodeURIComponent(q));if(!r.ok)throw 0;const j=await r.json();return(j.items||[]).map(i=>{const v=i.volumeInfo||{};return{title:v.title||"",author:(v.authors||[]).join(v.language=="ar"?"، ":", "),cats:(v.categories||[]).join(" ")}}).filter(x=>x.title)}
+function score(ocr,x){const a=norm(ocr).split(" ").filter(w=>w.length>=3);if(!a.length)return 0;const hw=norm(x.title+" "+x.author).split(" ");return a.filter(w=>hw.some(h=>h==w||lev(h,w)<=(w.length>=6?2:1))).length/a.length}
+function fillFrom(x){$("fT").value=x.title;$("fA").value=x.author;const d=guessDewey(x.title+" "+x.cats);if(d)$("fC").value=d}
+function showSug(a){const s=$("sug");s.innerHTML="";if(!a.length)return;const h=document.createElement("label");h.textContent=t("sug");s.appendChild(h);a.forEach(x=>{const b=document.createElement("button");b.className="chip";b.appendChild(document.createTextNode(x.title));const m=document.createElement("small");m.textContent=x.author;b.appendChild(m);b.onclick=()=>fillFrom(x);s.appendChild(b)})}
+async function suggest(q,ocr){const my=++sugSeq;try{let a=await gb(q);if(!a.length&&ocr&&ocr!=q)a=await gb(ocr);if(my!=sugSeq)return[];if(ocr)a.forEach(x=>x.s=score(ocr,x));a.sort((x,y)=>(y.s||0)-(x.s||0));showSug(a);return a}catch(e){return[]}}
+$("bSrch").onclick=async()=>{const q=($("fT").value+" "+$("fA").value).trim();if(!q)return;$("busy").textContent="⏳";const a=await suggest(q,q);$("busy").textContent="";if(!a.length)toast(t("nosug"))};
+$("bBar").onclick=()=>{barMode=true;$("sheet").classList.remove("on");$("hint").textContent=t("barh");if(!stream)$("file").click()};
+async function doBar(c){barMode=false;$("hint").textContent=t("hint");$("sheet").classList.add("on");$("busy").textContent="⏳";const v=await readISBN(c);let a=[];if(v&&/^97[89]\d{10}$/.test(v)){try{a=await gb("isbn:"+v)}catch(e){}}$("busy").textContent="";if(a.length){fillFrom(a[0]);$("sug").innerHTML="";toast("✓ ISBN "+v)}else toast(t("nobar"))}
+const MODEL="claude-haiku-5-5";
+const getKey=()=>{try{return localStorage.getItem("akey")||""}catch(e){return ""}};
+async function askAI(prompt,blob){
+ try{if(typeof claude!=="undefined"){const s=await claude.use("sample");if(s)return await s.json(prompt,{images:[blob],modelTier:"quick",cache:false})}}catch(e){}
+ const key=getKey();if(!key)return await localOCR(blob);
+ const d=(await b2d(blob)).split(",")[1];
+ const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"content-type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:MODEL,max_tokens:400,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:"image/jpeg",data:d}},{type:"text",text:prompt+" Return the JSON object only, no other text."}]}]})});
+ if(!r.ok)throw r.status;const j=await r.json();return JSON.parse(j.content.map(c=>c.text||"").join("").replace(/```json|```/g,"").trim())}
+$("kGo").onclick=()=>{const k=$("kIn").value.trim();if(!k)return;try{localStorage.setItem("akey",k)}catch(e){}$("kIn").value="";$("kIn").placeholder="sk-ant-•••• ✓";toast(t("ksaved"))};
+if(getKey())$("kIn").placeholder="sk-ant-•••• ✓";
+
+/* ---------- Admin password ---------- */
+const DEF="42e75ff5f116f83760552a91e4685482dac81dcf9783d28cf18e431724d8b9cb";
+const sha=async s=>[...new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)))].map(x=>x.toString(16).padStart(2,"0")).join("");
+const getH=()=>{try{return localStorage.getItem("pwh")||DEF}catch(e){return DEF}};
+$("lgGo").onclick=async()=>{if(await sha($("lgP").value)==getH()){try{sessionStorage.setItem("ok","1")}catch(e){}$("lgP").value="";$("lgE").textContent="";isAdm=true;const nf=afterLogin;afterLogin=null;nf?nf():show("home")}else $("lgE").textContent=t("wrong")};
+let isAdm=false,afterLogin=null,backTo="home";try{isAdm=sessionStorage.getItem("ok")=="1"}catch(e){}
+function needAdmin(fn){if(isAdm)return fn();backTo=document.querySelector(".screen.on").id;afterLogin=fn;$("lgE").textContent="";show("login");$("lgP").focus()}
+$("lgX").onclick=()=>{afterLogin=null;$("lgP").value="";show(backTo)};
+$("lgP").onkeydown=e=>{if(e.key=="Enter")$("lgGo").click()};
+$("bOut").onclick=()=>{try{sessionStorage.removeItem("ok")}catch(e){}isAdm=false;show("home")};
+$("bSet").onclick=()=>needAdmin(()=>show("set"));$("sBack").onclick=()=>show("home");
+$("pGo").onclick=async()=>{const a=$("p0").value,b=$("p1").value,c=$("p2").value;if(await sha(a)!=getH())return toast(t("wrong"));if(b.length<4)return toast(t("short"));if(b!=c)return toast(t("mism"));try{localStorage.setItem("pwh",await sha(b))}catch(e){}$("p0").value=$("p1").value=$("p2").value="";toast(t("pwok"))};
+
+/* ---------- Backup / restore ---------- */
+const b2d=b=>new Promise(r=>{const f=new FileReader();f.onload=()=>r(f.result);f.readAsDataURL(b)});
+const d2b=d=>{const [h,s]=d.split(","),m=h.match(/:(.*?);/)[1],x=atob(s),u=new Uint8Array(x.length);for(let i=0;i<x.length;i++)u[i]=x.charCodeAt(i);return new Blob([u],{type:m})};
+$("bBak").onclick=async()=>{if(!books.length)return toast(t("noex"));const items=[];for(const b of books)items.push({id:b.id,title:b.title,author:b.author,cat:b.cat,added:b.added,cover:await b2d(b.cover)});
+await saveFile("maktabatuna-backup-"+new Date().toISOString().slice(0,10)+".json",new Blob([JSON.stringify({app:"maktabatuna",v:1,books:items})],{type:"application/json"}))};
+$("bImp").onclick=()=>$("impF").click();
+$("impF").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;try{const j=JSON.parse(await f.text());if(j.app!="maktabatuna"||!Array.isArray(j.books))throw 0;let n=0;for(const x of j.books){if(!x.id||!x.cover)continue;const b={id:String(x.id),title:x.title||"—",author:x.author||"",cat:x.cat||"",added:x.added||Date.now(),cover:d2b(x.cover)};b.url=URL.createObjectURL(b.cover);const i=books.findIndex(y=>y.id==b.id);if(i>=0)books[i]=b;else books.push(b);await put(b);n++}toast(t("impok")+" "+n)}catch(err){toast(t("impbad"))}};
+
+/* ---------- Cloud storage (Supabase): public read, admin write ---------- */
+let sess=null;try{sess=JSON.parse(sessionStorage.getItem("sess")||"null")}catch(e){}
+isAdm=!!sess;
+const H=tk=>({apikey:KEY,Authorization:"Bearer "+(tk||KEY)});
+function setSess(j){sess={at:j.access_token,rt:j.refresh_token,exp:Date.now()+j.expires_in*1000};try{sessionStorage.setItem("sess",JSON.stringify(sess))}catch(e){}}
+async function signIn(pw){try{const r=await fetch(SB+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:KEY,"content-type":"application/json"},body:JSON.stringify({email:ADMIN_EMAIL,password:pw})});if(!r.ok)return false;setSess(await r.json());return true}catch(e){return false}}
+async function token(){if(!sess)throw"auth";if(Date.now()>sess.exp-60000){const r=await fetch(SB+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:KEY,"content-type":"application/json"},body:JSON.stringify({refresh_token:sess.rt})});if(!r.ok){sess=null;throw"auth"}setSess(await r.json())}return sess.at}
+const curl=id=>SB+"/storage/v1/object/public/covers/"+encodeURIComponent(id)+".jpg";
+async function sync(b){const tk=await token();if(b.cover){const r=await fetch(SB+"/storage/v1/object/covers/"+encodeURIComponent(b.id)+".jpg",{method:"POST",headers:{...H(tk),"content-type":"image/jpeg","x-upsert":"true"},body:b.cover});if(!r.ok)throw 0;b.url=curl(b.id)+"?v="+Date.now();b.cover=null}
+const r=await fetch(SB+"/rest/v1/books",{method:"POST",headers:{...H(tk),"content-type":"application/json",Prefer:"resolution=merge-duplicates"},body:JSON.stringify({id:b.id,title:b.title,author:b.author,cat:b.cat,cover_url:b.url,added:b.added})});if(!r.ok)throw 0}
+function put(b){const bg=!!b.cover&&!books.includes(b),p=sync(b).catch(e=>{if(e==="auth"){isAdm=false;sess=null}if(bg){books=books.filter(x=>x!==b);if($("lib").classList.contains("on"))render()}toast("⚠ "+t("upfail"))});return bg?Promise.resolve():p}
+async function del(b){try{const tk=await token(),o={method:"DELETE",headers:H(tk)};await fetch(SB+"/rest/v1/books?id=eq."+encodeURIComponent(b.id),o);await fetch(SB+"/storage/v1/object/covers/"+encodeURIComponent(b.id)+".jpg",o)}catch(e){toast("⚠ "+t("upfail"))}}
+async function load(){try{let all=[],from=0;for(;;){const r=await fetch(SB+"/rest/v1/books?select=*&order=added.desc",{headers:{...H(),Range:from+"-"+(from+999),"Range-Unit":"items"}});if(!r.ok)throw 0;const j=await r.json();all=all.concat(j);if(j.length<1000)break;from+=1000}
+books=all.map(x=>({id:x.id,title:x.title,author:x.author,cat:x.cat,added:x.added,url:x.cover_url}))}catch(e){toast(t("loadfail"))}fillCat($("fC"),"");if($("lib").classList.contains("on"))render()}
+$("bBrowse").onclick=()=>{show("lib");render();load()};
+$("lgGo").onclick=async()=>{$("lgE").textContent="";if(await signIn($("lgP").value)){$("lgP").value="";isAdm=true;const nf=afterLogin;afterLogin=null;nf?nf():show("home")}else $("lgE").textContent=t("wrong")};
+$("bOut").onclick=()=>{sess=null;try{sessionStorage.removeItem("sess")}catch(e){}isAdm=false;show("home")};
+$("pGo").onclick=async()=>{const a=$("p0").value,b=$("p1").value,c=$("p2").value;if(!(await signIn(a)))return toast(t("wrong"));if(b.length<6)return toast(t("short"));if(b!=c)return toast(t("mism"));try{const r=await fetch(SB+"/auth/v1/user",{method:"PUT",headers:{...H(await token()),"content-type":"application/json"},body:JSON.stringify({password:b})});if(!r.ok)throw 0;$("p0").value=$("p1").value=$("p2").value="";toast(t("pwok"))}catch(e){toast("⚠")}};
+$("bBak").onclick=async()=>{if(!books.length)return toast(t("noex"));toast("⏳");const items=[];for(const b of books){try{const bl=await(await fetch(b.url)).blob();items.push({id:b.id,title:b.title,author:b.author,cat:b.cat,added:b.added,cover:await b2d(bl)})}catch(e){}}
+await saveFile("maktabatuna-backup-"+new Date().toISOString().slice(0,10)+".json",new Blob([JSON.stringify({app:"maktabatuna",v:1,books:items})],{type:"application/json"}))};
+
+applyLang();bindCat($("fC"));load();
+show("home");
+</script>
+</body>
+</html>
