@@ -315,11 +315,11 @@ $("bImp").onclick=()=>$("impF").click();
 $("impF").onchange=async e=>{const f=e.target.files[0];e.target.value="";if(!f)return;try{const j=JSON.parse(await f.text());if(j.app!="maktabatuna"||!Array.isArray(j.books))throw 0;let n=0;for(const x of j.books){if(!x.id||!x.cover)continue;const b={id:String(x.id),title:x.title||"—",author:x.author||"",cat:x.cat||"",added:x.added||Date.now(),cover:d2b(x.cover)};b.url=URL.createObjectURL(b.cover);const i=books.findIndex(y=>y.id==b.id);if(i>=0)books[i]=b;else books.push(b);await put(b);n++}toast(t("impok")+" "+n)}catch(err){toast(t("impbad"))}};
 
 /* ---------- Cloud storage (Supabase): public read, admin write ---------- */
-let sess=null;try{sess=JSON.parse(sessionStorage.getItem("sess")||"null")}catch(e){}
+let lastErr="";let sess=null;try{sess=JSON.parse(sessionStorage.getItem("sess")||"null")}catch(e){}
 isAdm=!!sess;
 const H=tk=>({apikey:KEY,Authorization:"Bearer "+(tk||KEY)});
 function setSess(j){sess={at:j.access_token,rt:j.refresh_token,exp:Date.now()+j.expires_in*1000};try{sessionStorage.setItem("sess",JSON.stringify(sess))}catch(e){}}
-async function signIn(pw){try{const r=await fetch(SB+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:KEY,"content-type":"application/json"},body:JSON.stringify({email:ADMIN_EMAIL,password:pw})});if(!r.ok)return false;setSess(await r.json());return true}catch(e){return false}}
+async function signIn(pw){try{const r=await fetch(SB+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:KEY,"content-type":"application/json"},body:JSON.stringify({email:ADMIN_EMAIL,password:pw})});if(!r.ok){let m="";try{const j=await r.json();m=j.error_description||j.msg||j.message||""}catch(e){}lastErr=m||String(r.status);return false}setSess(await r.json());return true}catch(e){lastErr="network / URL";return false}}
 async function token(){if(!sess)throw"auth";if(Date.now()>sess.exp-60000){const r=await fetch(SB+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:KEY,"content-type":"application/json"},body:JSON.stringify({refresh_token:sess.rt})});if(!r.ok){sess=null;throw"auth"}setSess(await r.json())}return sess.at}
 const curl=id=>SB+"/storage/v1/object/public/covers/"+encodeURIComponent(id)+".jpg";
 async function sync(b){const tk=await token();if(b.cover){const r=await fetch(SB+"/storage/v1/object/covers/"+encodeURIComponent(b.id)+".jpg",{method:"POST",headers:{...H(tk),"content-type":"image/jpeg","x-upsert":"true"},body:b.cover});if(!r.ok)throw 0;b.url=curl(b.id)+"?v="+Date.now();b.cover=null}
@@ -329,7 +329,7 @@ async function del(b){try{const tk=await token(),o={method:"DELETE",headers:H(tk
 async function load(){try{let all=[],from=0;for(;;){const r=await fetch(SB+"/rest/v1/books?select=*&order=added.desc",{headers:{...H(),Range:from+"-"+(from+999),"Range-Unit":"items"}});if(!r.ok)throw 0;const j=await r.json();all=all.concat(j);if(j.length<1000)break;from+=1000}
 books=all.map(x=>({id:x.id,title:x.title,author:x.author,cat:x.cat,added:x.added,url:x.cover_url}))}catch(e){toast(t("loadfail"))}fillCat($("fC"),"");if($("lib").classList.contains("on"))render()}
 $("bBrowse").onclick=()=>{show("lib");render();load()};
-$("lgGo").onclick=async()=>{$("lgE").textContent="";if(await signIn($("lgP").value)){$("lgP").value="";isAdm=true;const nf=afterLogin;afterLogin=null;nf?nf():show("home")}else $("lgE").textContent=t("wrong")};
+$("lgGo").onclick=async()=>{$("lgE").textContent="";if(await signIn($("lgP").value)){$("lgP").value="";isAdm=true;const nf=afterLogin;afterLogin=null;nf?nf():show("home")}else $("lgE").textContent=t("wrong")+" — "+lastErr};
 $("bOut").onclick=()=>{sess=null;try{sessionStorage.removeItem("sess")}catch(e){}isAdm=false;show("home")};
 $("pGo").onclick=async()=>{const a=$("p0").value,b=$("p1").value,c=$("p2").value;if(!(await signIn(a)))return toast(t("wrong"));if(b.length<6)return toast(t("short"));if(b!=c)return toast(t("mism"));try{const r=await fetch(SB+"/auth/v1/user",{method:"PUT",headers:{...H(await token()),"content-type":"application/json"},body:JSON.stringify({password:b})});if(!r.ok)throw 0;$("p0").value=$("p1").value=$("p2").value="";toast(t("pwok"))}catch(e){toast("⚠")}};
 $("bBak").onclick=async()=>{if(!books.length)return toast(t("noex"));toast("⏳");const items=[];for(const b of books){try{const bl=await(await fetch(b.url)).blob();items.push({id:b.id,title:b.title,author:b.author,cat:b.cat,added:b.added,cover:await b2d(bl)})}catch(e){}}
